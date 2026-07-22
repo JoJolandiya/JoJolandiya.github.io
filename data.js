@@ -8,10 +8,10 @@ const DISCORD_INVITE_URL = "https://discord.gg/4DF5mbQyC7";
 
 // Giscus yorum ayarların (bkz. README.md - "Yorumları Aktif Etme")
 const GISCUS_CONFIG = {
-  repo: "kullaniciadin/kullaniciadin.github.io",
-  repoId: "BURAYA_REPO_ID",
+  repo: "JoJolandiya/JoJolandiya.github.io",
+  repoId: "R_kgDOTgcpvg",
   category: "General",
-  categoryId: "BURAYA_CATEGORY_ID"
+  categoryId: "DIC_kwDOTgcpvs4DBv34"
 };
 
 const MANGA_LIST = [
