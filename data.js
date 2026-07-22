@@ -4,7 +4,7 @@
    ========================================================== */
 
 // Discord sunucu linkin (üstteki butona bunu koy)
-const DISCORD_INVITE_URL = "https://discord.gg/senin-davet-linkin";
+const DISCORD_INVITE_URL = "https://discord.gg/4DF5mbQyC7";
 
 // Giscus yorum ayarların (bkz. README.md - "Yorumları Aktif Etme")
 const GISCUS_CONFIG = {
@@ -16,21 +16,21 @@ const GISCUS_CONFIG = {
 
 const MANGA_LIST = [
   {
-    id: "example-manga",           // URL'de kullanılacak, boşluksuz, küçük harf
-    title: "Örnek Manga Adı",
-    cover: "images/example-manga/cover.jpg", // kapak resmi (isteğe bağlı)
-    description: "Buraya mangan hakkında kısa bir açıklama yaz.",
+    id: "jojolands",           // URL'de kullanılacak, boşluksuz, küçük harf
+    title: "JoJo's Bizarre Adventure Part 9 The JOJOLands",
+    cover: "images/jojolands/cover.jpg", // kapak resmi (isteğe bağlı)
+    description: "JoJo's Bizarre Adventure serinin 9. bölümüdür. Jodio Joestar'ın zengin olma hikayesidir.",
     chapters: [
       {
         id: "1",
-        title: "Bölüm 1: Başlangıç",
+        title: "Bölüm 35: Usagi, Dolandırıcılık ve Şüphe Kısım 3",
         date: "2026-07-22",
-        pageCount: 3   // klasördeki resim sayısı
+        pageCount: 35   // klasördeki resim sayısı
       },
       {
         id: "2",
-        title: "Bölüm 2",
-        date: "2026-07-22",
+        title: "yok",
+        date: "yok",
         pageCount: 0   // henüz yok, 0 bırak veya satırı sil
       }
     ]
