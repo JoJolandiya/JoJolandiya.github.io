@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bölüm Oku — Site Adı</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <div class="seal-mark">読</div>
+    <div class="brand-name">Site Adı</div>
+  </a>
+  <a class="discord-btn" id="discord-link" href="#" target="_blank" rel="noopener">
+    <span class="label">Discord Sunucumuz</span>
+  </a>
+</header>
+
+<main class="page-wrap" id="content">
+  <!-- JS ile doldurulacak -->
+</main>
+
+<script src="data.js"></script>
+<script>
+  document.getElementById('discord-link').href = DISCORD_INVITE_URL;
+
+  const params = new URLSearchParams(window.location.search);
+  const mangaId = params.get('manga');
+  const chapterId = params.get('chapter');
+  const manga = MANGA_LIST.find(m => m.id === mangaId);
+  const content = document.getElementById('content');
+
+  const manga_ok = manga && manga.chapters.find(c => c.id === chapterId);
+
+  if (!manga_ok) {
+    content.innerHTML = `
+      <div class="eyebrow">Hata</div>
+      <h1 class="page-title">Bölüm bulunamadı</h1>
+      <p><a href="index.html" style="color:var(--seal)">← Ana sayfaya dön</a></p>
+    `;
+  } else {
+    const chapters = manga.chapters;
+    const idx = chapters.findIndex(c => c.id === chapterId);
+    const chapter = chapters[idx];
+    const prev = chapters[idx - 1];
+    const next = chapters[idx + 1];
+
+    // Sayfa görsellerini oluştur: images/<manga-id>/chapter-<chapter-id>/001.jpg, 002.jpg, ...
+    let pagesHtml = '';
+    for (let i = 1; i <= (chapter.pageCount || 0); i++) {
+      const num = String(i).padStart(3, '0');
+      pagesHtml += `<img src="images/${manga.id}/chapter-${chapter.id}/${num}.jpg" alt="Sayfa ${i}" loading="lazy">`;
+    }
+
+    if (!chapter.pageCount) {
+      pagesHtml = `<p style="color:var(--text-muted); text-align:center;">Bu bölüm için sayfa eklenmedi.</p>`;
+    }
+
+    content.innerHTML = `
+      <div class="reader-nav">
+        <a href="manga.html?id=${encodeURIComponent(manga.id)}">← Bölüm Listesi</a>
+        <span style="color:var(--text-muted)">${manga.title}</span>
+      </div>
+
+      <div class="reader-title">
+        <div class="eyebrow">Bölüm ${chapter.id}</div>
+        <h1>${chapter.title}</h1>
+      </div>
+
+      <div class="page-stack">${pagesHtml}</div>
+
+      <div class="chapter-end-nav">
+        ${prev ? `<a href="chapter.html?manga=${manga.id}&chapter=${prev.id}">← Önceki Bölüm</a>` : `<span></span>`}
+        <a href="manga.html?id=${manga.id}">Bölüm Listesi</a>
+        ${next ? `<a href="chapter.html?manga=${manga.id}&chapter=${next.id}">Sonraki Bölüm →</a>` : `<span></span>`}
+      </div>
+
+      <div class="comments-section">
+        <div class="eyebrow">Yorumlar</div>
+        <div id="giscus-container"></div>
+      </div>
+    `;
+
+    // Giscus yorum sistemini yükle
+    const giscusScript = document.createElement('script');
+    giscusScript.src = 'https://giscus.app/client.js';
+    giscusScript.setAttribute('data-repo', GISCUS_CONFIG.repo);
+    giscusScript.setAttribute('data-repo-id', GISCUS_CONFIG.repoId);
+    giscusScript.setAttribute('data-category', GISCUS_CONFIG.category);
+    giscusScript.setAttribute('data-category-id', GISCUS_CONFIG.categoryId);
+    giscusScript.setAttribute('data-mapping', 'specific');
+    giscusScript.setAttribute('data-term', `${manga.id}-chapter-${chapter.id}`);
+    giscusScript.setAttribute('data-theme', 'dark_dimmed');
+    giscusScript.setAttribute('data-lang', 'tr');
+    giscusScript.setAttribute('crossorigin', 'anonymous');
+    giscusScript.async = true;
+    document.getElementById('giscus-container').appendChild(giscusScript);
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Adı — Manga Oku</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <div class="seal-mark">読</div>
+    <div class="brand-name">Site Adı</div>
+  </a>
+  <a class="discord-btn" id="discord-link" href="#" target="_blank" rel="noopener">
+    <span class="label">Discord Sunucumuz</span>
+  </a>
+</header>
+
+<main class="page-wrap">
+  <div class="eyebrow">Kütüphane</div>
+  <h1 class="page-title">Mangalar</h1>
+
+  <div class="manga-grid" id="manga-grid"></div>
+</main>
+
+<script src="data.js"></script>
+<script>
+  document.getElementById('discord-link').href = DISCORD_INVITE_URL;
+
+  const grid = document.getElementById('manga-grid');
+
+  MANGA_LIST.forEach(manga => {
+    const card = document.createElement('a');
+    card.className = 'manga-card';
+    card.href = `manga.html?id=${encodeURIComponent(manga.id)}`;
+
+    const coverHtml = manga.cover
+      ? `<img src="${manga.cover}" alt="${manga.title}">`
+      : `<div class="no-cover">${manga.title}</div>`;
+
+    card.innerHTML = `
+      <div class="manga-cover">${coverHtml}</div>
+      <div class="manga-title">${manga.title}</div>
+      <div class="manga-meta">${manga.chapters.length} bölüm</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  if (MANGA_LIST.length === 0) {
+    grid.innerHTML = `<p style="color:var(--text-muted)">Henüz manga eklenmedi.</p>`;
+  }
+</script>
+
+</body>
+</html>

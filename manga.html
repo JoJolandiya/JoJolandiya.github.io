@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bölümler — Site Adı</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <div class="seal-mark">読</div>
+    <div class="brand-name">Site Adı</div>
+  </a>
+  <a class="discord-btn" id="discord-link" href="#" target="_blank" rel="noopener">
+    <span class="label">Discord Sunucumuz</span>
+  </a>
+</header>
+
+<main class="page-wrap" id="content">
+  <!-- JS ile doldurulacak -->
+</main>
+
+<script src="data.js"></script>
+<script>
+  document.getElementById('discord-link').href = DISCORD_INVITE_URL;
+
+  const params = new URLSearchParams(window.location.search);
+  const mangaId = params.get('id');
+  const manga = MANGA_LIST.find(m => m.id === mangaId);
+  const content = document.getElementById('content');
+
+  if (!manga) {
+    content.innerHTML = `
+      <div class="eyebrow">Hata</div>
+      <h1 class="page-title">Manga bulunamadı</h1>
+      <p><a href="index.html" style="color:var(--seal)">← Ana sayfaya dön</a></p>
+    `;
+  } else {
+    const coverHtml = manga.cover
+      ? `<img src="${manga.cover}" alt="${manga.title}">`
+      : `<div class="no-cover">${manga.title}</div>`;
+
+    let rows = manga.chapters.map(ch => `
+      <a class="chapter-row" href="chapter.html?manga=${encodeURIComponent(manga.id)}&chapter=${encodeURIComponent(ch.id)}">
+        <span class="chapter-num">#${ch.id}</span>
+        <span class="chapter-name">${ch.title}</span>
+        <span class="chapter-date">${ch.date || ''}</span>
+      </a>
+    `).join('');
+
+    if (manga.chapters.length === 0) {
+      rows = `<p style="color:var(--text-muted); padding:16px 0;">Henüz bölüm eklenmedi.</p>`;
+    }
+
+    content.innerHTML = `
+      <div class="eyebrow"><a href="index.html" style="color:var(--gold)">← Kütüphane</a></div>
+      <div class="manga-header">
+        <div class="manga-cover">${coverHtml}</div>
+        <div>
+          <h1 class="page-title" style="margin-bottom:6px;">${manga.title}</h1>
+          <p class="manga-desc">${manga.description || ''}</p>
+        </div>
+      </div>
+      <div class="chapter-list">${rows}</div>
+    `;
+  }
+</script>
+
+</body>
+</html>
