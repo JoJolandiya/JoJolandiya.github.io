@@ -22,7 +22,7 @@ const MANGA_LIST = [
     description: "JoJo's Bizarre Adventure serinin 9. bölümüdür. Jodio Joestar'ın zengin olma hikayesidir.",
     chapters: [
       {
-        id: "1",
+        id: "35",
         title: "Bölüm 35: Usagi, Dolandırıcılık ve Şüphe Kısım 3",
         date: "2026-07-22",
         pageCount: 35   // klasördeki resim sayısı
