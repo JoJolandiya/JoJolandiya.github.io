@@ -28,9 +28,9 @@ const MANGA_LIST = [
         pageCount: 35   // klasördeki resim sayısı
       },
       {
-        id: "2",
-        title: "yok",
-        date: "yok",
+        id: "36",
+        title: "Bölüm 36: Çevirilecek",
+        date: "Çevirilmedi",
         pageCount: 0   // henüz yok, 0 bırak veya satırı sil
       }
     ]
