@@ -369,6 +369,62 @@ h1.page-title {
 
 .comments-section .eyebrow { margin-bottom: 16px; }
 
+/* ---------- Reaction Bar ---------- */
+
+.reaction-bar {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 8px 0 36px;
+  flex-wrap: wrap;
+}
+
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--foam);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(10, 92, 115, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.reaction-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(10, 92, 115, 0.18);
+}
+
+.reaction-btn .emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.reaction-btn .count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+  min-width: 14px;
+}
+
+.reaction-btn.voted {
+  background: var(--lagoon);
+}
+
+.reaction-btn.voted .count {
+  color: var(--ink);
+}
+
+.reaction-btn:disabled {
+  cursor: default;
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 640px) {

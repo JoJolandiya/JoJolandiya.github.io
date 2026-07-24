@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bölüm Oku — JoJolandiya</title>
+<meta name="description" content="JoJolandiya üzerinde manga bölümünü oku.">
+<meta name="robots" content="index, follow">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -69,6 +71,8 @@
         <h1>${chapter.title}</h1>
       </div>
 
+      <div class="reaction-bar" id="reaction-bar"></div>
+
       <div class="page-stack">${pagesHtml}</div>
 
       <div class="chapter-end-nav">
@@ -97,6 +101,64 @@
     giscusScript.setAttribute('crossorigin', 'anonymous');
     giscusScript.async = true;
     document.getElementById('giscus-container').appendChild(giscusScript);
+
+    // ---------- Tepki Çubuğu ----------
+    const REACTIONS = ['👍', '❤️', '😂', '😮', '😢'];
+    const COUNT_API = 'https://countapi.mileshilliard.com/api/v1';
+    const reactionBar = document.getElementById('reaction-bar');
+    const chapterKeyBase = `jojolandiya-${manga.id}-ch${chapter.id}`;
+
+    reactionBar.innerHTML = REACTIONS.map(emoji => {
+      const safeKey = `${chapterKeyBase}-${encodeURIComponent(emoji)}`;
+      return `<button class="reaction-btn" data-key="${safeKey}" data-emoji="${emoji}">
+        <span class="emoji">${emoji}</span><span class="count">–</span>
+      </button>`;
+    }).join('');
+
+    const buttons = reactionBar.querySelectorAll('.reaction-btn');
+
+    buttons.forEach(btn => {
+      const key = btn.dataset.key;
+      const voted = localStorage.getItem(`voted-${key}`) === '1';
+      if (voted) btn.classList.add('voted');
+
+      // Mevcut sayıyı çek
+      fetch(`${COUNT_API}/get/${key}`)
+        .then(res => res.json())
+        .then(data => {
+          btn.querySelector('.count').textContent = data.value ?? 0;
+        })
+        .catch(() => {
+          btn.querySelector('.count').textContent = '0';
+        });
+
+      btn.addEventListener('click', () => {
+        const alreadyVoted = localStorage.getItem(`voted-${key}`) === '1';
+        const endpoint = alreadyVoted ? 'set' : 'hit'; // tekrar tıklarsa sadece geri al
+        if (alreadyVoted) {
+          // oyu geri çek: bir azalt
+          fetch(`${COUNT_API}/get/${key}`)
+            .then(res => res.json())
+            .then(data => {
+              const newVal = Math.max(0, (data.value || 1) - 1);
+              fetch(`${COUNT_API}/set/${key}?value=${newVal}`)
+                .then(() => {
+                  btn.querySelector('.count').textContent = newVal;
+                  btn.classList.remove('voted');
+                  localStorage.removeItem(`voted-${key}`);
+                });
+            });
+        } else {
+          fetch(`${COUNT_API}/hit/${key}`)
+            .then(res => res.json())
+            .then(data => {
+              btn.querySelector('.count').textContent = data.value;
+              btn.classList.add('voted');
+              localStorage.setItem(`voted-${key}`, '1');
+            });
+        }
+      });
+    });
   }
 </script>
 

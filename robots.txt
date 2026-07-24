@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kullaniciadin.github.io/sitemap.xml
