@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://kullaniciadin.github.io/sitemap.xml
+Sitemap: https://JoJolandiya.github.io/sitemap.xml
