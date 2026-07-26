@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /editor.html
 
-Sitemap: https://JoJolandiya.github.io/sitemap.xml
+Sitemap: https://kullaniciadin.github.io/sitemap.xml
