@@ -177,12 +177,18 @@
         <div class="row">
           <label style="font-size:12px;">Renk:</label>
           <input type="color" id="fillColor" value="#ffffff">
+          <button id="btnEyedropper" title="Sayfadan renk örnekle">💧 Pipet</button>
         </div>
+        <small>Pipet: tıkla, sonra sayfada eşleştirmek istediğin bir noktaya dokun — o pikselin rengi otomatik seçilir.</small>
         <div class="swatches">
           <div class="swatch selected" style="background:#ffffff" data-color="#ffffff"></div>
           <div class="swatch" style="background:#000000" data-color="#000000"></div>
           <div class="swatch" style="background:#f2e9d8" data-color="#f2e9d8"></div>
           <div class="swatch" style="background:#eeeeee" data-color="#eeeeee"></div>
+          <div class="swatch" style="background:#cccccc" data-color="#cccccc"></div>
+          <div class="swatch" style="background:#888888" data-color="#888888"></div>
+          <div class="swatch" style="background:#f5e6d3" data-color="#f5e6d3"></div>
+          <div class="swatch" style="background:#fff8e7" data-color="#fff8e7"></div>
         </div>
         <h3 style="margin-top:10px;">Şekil</h3>
         <div class="row">
@@ -270,7 +276,7 @@
           <input type="color" id="bgColor" value="#ffffff">
         </div>
 
-        <small style="margin-top:8px;">Eklenen metni sahnede sürükleyerek konumlandırabilir, sağ-alt köşedeki tutamaçtan kutu boyutunu değiştirebilirsin.</small>
+        <small style="margin-top:8px;">Eklenen metni sahnede sürükleyerek konumlandırabilirsin. Sağ-alt köşe: serbest boyutlandırma. Sağ/sol kenar ortası: sadece genişliği sıkıştırır, metin otomatik alt alta kayar ve kutu boyu kendiliğinden uzar.</small>
       </div>
 
       <div id="panel-layers">
@@ -541,10 +547,12 @@
         ctx.lineWidth = 2;
         ctx.setLineDash([6,4]);
         ctx.strokeRect(0, 0, t.width, t.height);
-        // resize tutamacı
+        // tutamaçlar: köşe (serbest boyut), sağ-kenar ve sol-kenar (yatayda sıkıştır, boy otomatik uzasın)
         ctx.setLineDash([]);
         ctx.fillStyle = '#4dd0ff';
         ctx.fillRect(t.width-10, t.height-10, 10, 10);
+        ctx.fillRect(t.width-6, t.height/2-6, 12, 12);
+        ctx.fillRect(-6, t.height/2-6, 12, 12);
       }
     } else {
       // Sayfa üstü serbest metin (SFX / anlatım): kontur + opsiyonel arka plan
@@ -642,6 +650,13 @@
       document.getElementById('fillColor').value = fillColor;
     };
   });
+
+  let eyedropperActive = false;
+  const btnEyedropper = document.getElementById('btnEyedropper');
+  btnEyedropper.onclick = () => {
+    eyedropperActive = !eyedropperActive;
+    btnEyedropper.classList.toggle('active', eyedropperActive);
+  };
   document.getElementById('brushSize').oninput = (e) => brushSize = +e.target.value;
 
   // --- Font preview ---
@@ -653,6 +668,7 @@
   let drawing = false, startX=0, startY=0, lassoPts=[];
   let draggingText = null, dragOffset = {x:0,y:0};
   let resizingText = null;
+  let resizingHandle = null;
   let selectedTextIdx = -1;
 
   function getPos(e){
@@ -677,11 +693,21 @@
     return pos.x >= bx-6 && pos.x <= bx+w+6 && pos.y >= t.y-6 && pos.y <= t.y+h+6;
   }
 
-  // Balon kutusunun sağ-alt resize tutamacına dokunulup dokunulmadığını kontrol eder
-  function inResizeHandle(pos, t){
-    if(t.mode !== 'balloon') return false;
-    const hx = t.x + t.width, hy = t.y + t.height;
-    return Math.abs(pos.x - hx) < 14 && Math.abs(pos.y - hy) < 14;
+  // Balon kutusunun köşe/kenar tutamaçlarından hangisine dokunulduğunu bulur
+  function getHandle(pos, t){
+    if(t.mode !== 'balloon') return null;
+    const hx = t.x + t.width, hy = t.y + t.height, midY = t.y + t.height/2;
+    if(Math.abs(pos.x - hx) < 14 && Math.abs(pos.y - hy) < 14) return 'corner';
+    if(Math.abs(pos.x - hx) < 14 && Math.abs(pos.y - midY) < 14) return 'right';
+    if(Math.abs(pos.x - t.x) < 14 && Math.abs(pos.y - midY) < 14) return 'left';
+    return null;
+  }
+
+  // Genişlik değiştiğinde, font boyutunu küçültmeden metnin sığması için gereken yüksekliği hesaplar
+  function autoHeightForWidth(ctx, t){
+    const lines = wrapLines(ctx, t.text, t.font, t.size, t.width - 12);
+    const lineHeight = t.size * 1.2;
+    return Math.max(30, lines.length * lineHeight + 12);
   }
 
   function onStart(e){
@@ -691,10 +717,14 @@
     const p = pages[currentPage];
 
     if(currentTool === 'move' || currentTool === 'text'){
-      // Önce seçili kutunun resize tutamacına dokunuldu mu diye bak
-      if(selectedTextIdx >= 0 && inResizeHandle(pos, p.texts[selectedTextIdx])){
-        resizingText = p.texts[selectedTextIdx];
-        return;
+      // Önce seçili kutunun tutamaçlarına (köşe/sağ-kenar/sol-kenar) dokunuldu mu diye bak
+      if(selectedTextIdx >= 0){
+        const handle = getHandle(pos, p.texts[selectedTextIdx]);
+        if(handle){
+          resizingText = p.texts[selectedTextIdx];
+          resizingHandle = handle;
+          return;
+        }
       }
       // check text hit for dragging
       for(let i=p.texts.length-1;i>=0;i--){
@@ -720,6 +750,16 @@
     }
 
     if(currentTool === 'fill'){
+      if(eyedropperActive){
+        const d = baseCtx.getImageData(Math.max(0,Math.floor(pos.x)), Math.max(0,Math.floor(pos.y)), 1, 1).data;
+        const hex = '#' + [d[0],d[1],d[2]].map(v => v.toString(16).padStart(2,'0')).join('');
+        fillColor = hex;
+        document.getElementById('fillColor').value = hex;
+        document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+        eyedropperActive = false;
+        document.getElementById('btnEyedropper').classList.remove('active');
+        return;
+      }
       if(currentShape === 'magic'){
         const tolerance = +document.getElementById('magicTolerance').value;
         const maskCanvas = magicWandFill(pos.x, pos.y, tolerance, fillColor);
@@ -743,8 +783,19 @@
 
     if(resizingText){
       e.preventDefault();
-      resizingText.width = Math.max(40, pos.x - resizingText.x);
-      resizingText.height = Math.max(30, pos.y - resizingText.y);
+      const t = resizingText;
+      if(resizingHandle === 'corner'){
+        t.width = Math.max(40, pos.x - t.x);
+        t.height = Math.max(30, pos.y - t.y);
+      } else if(resizingHandle === 'right'){
+        t.width = Math.max(40, pos.x - t.x);
+        t.height = autoHeightForWidth(overlayCtx, t);
+      } else if(resizingHandle === 'left'){
+        const newWidth = Math.max(40, (t.x + t.width) - pos.x);
+        t.x = (t.x + t.width) - newWidth;
+        t.width = newWidth;
+        t.height = autoHeightForWidth(overlayCtx, t);
+      }
       redrawOverlay();
       return;
     }
@@ -786,7 +837,7 @@
   }
 
   function onEnd(e){
-    if(resizingText){ resizingText = null; renderLayers(); return; }
+    if(resizingText){ resizingText = null; resizingHandle = null; renderLayers(); return; }
     if(draggingText){ draggingText = null; renderLayers(); return; }
     if(!drawing) return;
     drawing = false;
@@ -797,7 +848,7 @@
     if(currentShape === 'rect'){
       fill = {shape:'rect', x: Math.min(startX,pos.x), y: Math.min(startY,pos.y), w: Math.abs(pos.x-startX), h: Math.abs(pos.y-startY), color: fillColor};
     } else if(currentShape === 'ellipse'){
-      fill = {shape:'ellipse', x: Math.min(startX,pos.x), y: Math.min(startY,pos.y), w: pos.x-startX, h: pos.y-startY, color: fillColor};
+      fill = {shape:'ellipse', x: Math.min(startX,pos.x), y: Math.min(startY,pos.y), w: Math.abs(pos.x-startX), h: Math.abs(pos.y-startY), color: fillColor};
     } else {
       fill = {shape:'lasso', points: lassoPts, color: fillColor};
     }
