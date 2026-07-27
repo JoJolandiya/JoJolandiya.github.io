@@ -2,9 +2,11 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manga Çeviri Editörü</title>
 <meta name="robots" content="noindex, nofollow">
+<!-- NOT: viewport eskiden user-scalable=no idi, bu mobilde parmakla (pinch) yakınlaşmayı
+     tamamen engelliyordu. Artık hem 🔍 butonlarıyla hem parmakla yakınlaşabilirsin. -->
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bangers&family=Komika+Axis&family=Kalam:wght@400;700&family=Permanent+Marker&family=Nunito:wght@400;700;900&family=Archivo+Black&family=Patrick+Hand&family=Luckiest+Guy&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
@@ -155,6 +157,9 @@
     <button id="btnExportAll" class="primary">⬇⬇ Tümünü İndir (JPG)</button>
     <button id="btnFontUpload">🔤 Font Yükle</button>
     <input type="file" id="fontInput" accept=".ttf,.otf,.woff,.woff2">
+    <button id="btnZoomOut">🔍−</button>
+    <button id="btnZoomReset">%100</button>
+    <button id="btnZoomIn">🔍+</button>
     <button id="btnPanelToggle">⚙️ Araçlar</button>
   </div>
 
@@ -357,7 +362,9 @@
   let currentShape = 'rect';
   let fillColor = '#ffffff';
   let brushSize = 24;
-  let scale = 1;
+  let scale = 1;       // baseScale * userZoom, dış dünyaya (koordinat dönüşümü) yansıyan gerçek ölçek
+  let baseScale = 1;   // sayfayı ekrana sığdıran ölçek
+  let userZoom = 1;    // kullanıcının manuel yakınlaştırma çarpanı
 
   // --- Panel toggle (mobile) ---
   btnPanelToggle.onclick = () => sidepanel.classList.toggle('open');
@@ -367,16 +374,20 @@
   btnUpload2.onclick = () => fileInput.click();
   fileInput.onchange = (e) => {
     const files = Array.from(e.target.files);
+    const startIdx = pages.length;
+    // Önce sırayla boş yuvalar oluştur, resimler paralel yüklense bile
+    // seçim sırası (001, 002, 003...) her zaman korunur.
+    files.forEach(() => pages.push({img: null, fills:[], texts:[], history:[]}));
     let loaded = 0;
-    files.forEach(file => {
+    files.forEach((file, i) => {
       const img = new Image();
       const reader = new FileReader();
       reader.onload = ev => {
         img.onload = () => {
-          pages.push({img, fills:[], texts:[], history:[]});
+          pages[startIdx + i].img = img;
           loaded++;
           if(loaded === files.length){
-            currentPage = pages.length - files.length; // go to first newly added
+            currentPage = startIdx; // go to first newly added
             renderPage();
           }
         };
@@ -394,25 +405,37 @@
     const p = pages[currentPage];
     const img = p.img;
 
-    // Fit to container width, keep native resolution internally for quality
-    const maxW = canvasWrap.clientWidth - 32;
-    const dispW = Math.min(img.naturalWidth, maxW);
-    scale = dispW / img.naturalWidth;
-    const dispH = img.naturalHeight * scale;
-
     [baseCanvas, overlayCanvas].forEach(c=>{
       c.width = img.naturalWidth;   // full-res internal buffer = quality preserved
       c.height = img.naturalHeight;
+    });
+
+    userZoom = 1; // her sayfaya geçişte yakınlaştırmayı sıfırla
+    applyDisplaySize();
+    redrawBase();
+    redrawOverlay();
+    updatePageIndicator();
+    renderLayers();
+  }
+
+  // Sadece ekranda gösterilen boyutu günceller (iç çözünürlüğe dokunmaz).
+  // Yakınlaştırma butonlarında ve pencere yeniden boyutlandığında çağrılır.
+  function applyDisplaySize(){
+    const p = pages[currentPage];
+    if(!p) return;
+    const img = p.img;
+    const maxW = canvasWrap.clientWidth - 32;
+    baseScale = Math.min(1, maxW / img.naturalWidth);
+    scale = baseScale * userZoom;
+    const dispW = img.naturalWidth * scale;
+    const dispH = img.naturalHeight * scale;
+
+    [baseCanvas, overlayCanvas].forEach(c=>{
       c.style.width = dispW + 'px';
       c.style.height = dispH + 'px';
     });
     stage.style.width = dispW + 'px';
     stage.style.height = dispH + 'px';
-
-    redrawBase();
-    redrawOverlay();
-    updatePageIndicator();
-    renderLayers();
   }
 
   function redrawBase(){
@@ -544,15 +567,17 @@
 
       if(isSelected){
         ctx.strokeStyle = '#4dd0ff';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 / Math.max(scale, 0.05);
         ctx.setLineDash([6,4]);
         ctx.strokeRect(0, 0, t.width, t.height);
         // tutamaçlar: köşe (serbest boyut), sağ-kenar ve sol-kenar (yatayda sıkıştır, boy otomatik uzasın)
+        // boyutları ekranda ~14px görünecek şekilde ölçeğe göre büyütülür
+        const hs = 14 / Math.max(scale, 0.05);
         ctx.setLineDash([]);
         ctx.fillStyle = '#4dd0ff';
-        ctx.fillRect(t.width-10, t.height-10, 10, 10);
-        ctx.fillRect(t.width-6, t.height/2-6, 12, 12);
-        ctx.fillRect(-6, t.height/2-6, 12, 12);
+        ctx.fillRect(t.width - hs/2, t.height - hs/2, hs, hs);
+        ctx.fillRect(t.width - hs/2, t.height/2 - hs/2, hs, hs);
+        ctx.fillRect(-hs/2, t.height/2 - hs/2, hs, hs);
       }
     } else {
       // Sayfa üstü serbest metin (SFX / anlatım): kontur + opsiyonel arka plan
@@ -693,13 +718,16 @@
     return pos.x >= bx-6 && pos.x <= bx+w+6 && pos.y >= t.y-6 && pos.y <= t.y+h+6;
   }
 
-  // Balon kutusunun köşe/kenar tutamaçlarından hangisine dokunulduğunu bulur
+  // Balon kutusunun köşe/kenar tutamaçlarından hangisine dokunulduğunu bulur.
+  // Tolerans ekran ölçeğine göre ayarlanır (14 ekran pikseli hedefi), yoksa yüksek
+  // çözünürlüklü sayfalarda tutamaçlar pratikte dokunulamayacak kadar küçülür.
   function getHandle(pos, t){
     if(t.mode !== 'balloon') return null;
+    const tol = 14 / Math.max(scale, 0.05);
     const hx = t.x + t.width, hy = t.y + t.height, midY = t.y + t.height/2;
-    if(Math.abs(pos.x - hx) < 14 && Math.abs(pos.y - hy) < 14) return 'corner';
-    if(Math.abs(pos.x - hx) < 14 && Math.abs(pos.y - midY) < 14) return 'right';
-    if(Math.abs(pos.x - t.x) < 14 && Math.abs(pos.y - midY) < 14) return 'left';
+    if(Math.abs(pos.x - hx) < tol && Math.abs(pos.y - hy) < tol) return 'corner';
+    if(Math.abs(pos.x - hx) < tol && Math.abs(pos.y - midY) < tol) return 'right';
+    if(Math.abs(pos.x - t.x) < tol && Math.abs(pos.y - midY) < tol) return 'left';
     return null;
   }
 
@@ -766,6 +794,7 @@
         if(maskCanvas){
           const fill = {shape:'mask', dataURL: maskCanvas.toDataURL('image/png'), _img: maskCanvas};
           p.fills.push(fill);
+          p.history.push('fill');
           redrawBase();
           renderLayers();
         }
@@ -858,6 +887,7 @@
       return; // ignore accidental taps
     }
     p.fills.push(fill);
+    p.history.push('fill');
     redrawBase();
     overlayCtx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
     redrawOverlay();
@@ -933,6 +963,7 @@
       };
     }
     p.texts.push(t);
+    p.history.push('text');
     selectedTextIdx = p.texts.length - 1;
     redrawOverlay();
     renderLayers();
@@ -986,11 +1017,21 @@
   });
 
   // --- Undo ---
+  // NOT: Eskiden burada "önce her zaman son eklenen metni sil, yoksa dolguyu sil" mantığı vardı.
+  // Bu, dolgu -> metin -> dolgu gibi karışık sırayla eklemelerde YANLIŞ öğeyi siliyordu.
+  // Artık p.history, eklenen her şeyin gerçek kronolojik sırasını tutuyor.
   document.getElementById('btnUndo').onclick = () => {
     if(currentPage < 0) return;
     const p = pages[currentPage];
-    if(p.texts.length) p.texts.pop();
-    else if(p.fills.length) p.fills.pop();
+    const last = p.history.pop();
+    if(last === 'text' && p.texts.length) p.texts.pop();
+    else if(last === 'fill' && p.fills.length) p.fills.pop();
+    else if(!last){
+      // eski kaydedilmiş projelerde history bilgisi olmayabilir, eski davranışa dön
+      if(p.texts.length) p.texts.pop();
+      else if(p.fills.length) p.fills.pop();
+    }
+    if(selectedTextIdx >= p.texts.length) selectedTextIdx = -1;
     redrawBase(); redrawOverlay(); renderLayers();
   };
 
@@ -1017,7 +1058,23 @@
     }, 'image/png'); // PNG = kayıpsız, kalite korunur
   };
 
-  window.addEventListener('resize', () => { if(currentPage>=0) renderPage(); });
+  window.addEventListener('resize', () => { if(currentPage>=0) applyDisplaySize(); });
+
+  document.getElementById('btnZoomIn').onclick = () => {
+    if(currentPage < 0) return;
+    userZoom = Math.min(4, userZoom * 1.25);
+    applyDisplaySize();
+  };
+  document.getElementById('btnZoomOut').onclick = () => {
+    if(currentPage < 0) return;
+    userZoom = Math.max(0.25, userZoom / 1.25);
+    applyDisplaySize();
+  };
+  document.getElementById('btnZoomReset').onclick = () => {
+    if(currentPage < 0) return;
+    userZoom = 1;
+    applyDisplaySize();
+  };
 
   // ================= PROJE KAYDET / AÇ =================
   document.getElementById('btnSaveProject').onclick = () => {
