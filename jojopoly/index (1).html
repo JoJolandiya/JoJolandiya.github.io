@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JOJOPOLY — JoJolandiya Masa Oyunu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===================== LOBİ EKRANI ===================== -->
+  <section id="lobby-screen" class="screen is-active">
+
+    <div class="lobby-grid">
+
+      <!-- Sol panel: Marka / Başlık -->
+      <div class="brand-panel">
+        <div class="halftone"></div>
+        <div class="speedlines"></div>
+        <p class="eyebrow">JoJolandiya Sunar</p>
+        <h1 class="logo-mark">
+          <span class="logo-line">JOJO</span>
+          <span class="logo-line logo-line--accent">POLY</span>
+        </h1>
+        <p class="tagline">Dörtlü. Sıra bazlı. Yenilmez standlar<br/>ve kırılgan ittifaklar.</p>
+
+        <ul class="pillar-list">
+          <li><span class="pillar-num">壱</span> Zar at, bölge kap</li>
+          <li><span class="pillar-num">弐</span> Muhafızını yerleştir</li>
+          <li><span class="pillar-num">参</span> Standını serbest bırak</li>
+        </ul>
+      </div>
+
+      <!-- Sağ panel: Maç akışı -->
+      <div class="action-panel">
+
+        <!-- Durum A: seçim ekranı -->
+        <div id="mode-select" class="panel-block is-active">
+          <h2 class="block-title">Maça Başla</h2>
+          <p class="block-sub">Bir oda kur, arkadaşlarını davet et ya da mevcut bir odaya katıl.</p>
+
+          <button id="btn-create" class="btn btn--primary">Maç Oluştur</button>
+          <button id="btn-join" class="btn btn--ghost">Kodla Katıl</button>
+          <button id="btn-preview" class="btn btn--text">Sadece tahtayı önizle →</button>
+        </div>
+
+        <!-- Durum B: kod ile katılım -->
+        <div id="mode-join" class="panel-block">
+          <h2 class="block-title">Odaya Katıl</h2>
+          <p class="block-sub">Sana gönderilen 5 haneli oda kodunu gir.</p>
+          <input id="join-code-input" class="code-input" maxlength="5" placeholder="XXXXX" autocomplete="off" />
+          <button id="btn-join-confirm" class="btn btn--primary">Katıl</button>
+          <button class="btn btn--text btn-back" data-back="mode-select">← Geri</button>
+        </div>
+
+        <!-- Durum C: oda / lobi (oyuncu bekleme) -->
+        <div id="mode-room" class="panel-block">
+          <div class="room-head">
+            <div>
+              <p class="block-sub" style="margin-bottom:2px;">Oda Kodu</p>
+              <p id="room-code-display" class="room-code">—</p>
+            </div>
+            <button id="btn-copy-code" class="btn btn--tiny">Kodu Kopyala</button>
+          </div>
+
+          <div class="player-slots" id="player-slots">
+            <!-- JS ile 4 oyuncu slotu doldurulacak -->
+          </div>
+
+          <p class="room-note">Not: Bu sürümde eşleşme yerel olarak simüle ediliyor. Gerçek zamanlı bağlantı (Socket.io + sunucu) sonraki aşamada eklenecek.</p>
+
+          <button id="btn-goto-board" class="btn btn--primary" disabled>Tahtaya Geç</button>
+          <button class="btn btn--text btn-back" data-back="mode-select">← Odadan çık</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TAHTA EKRANI ===================== -->
+  <section id="board-screen" class="screen">
+
+    <header class="board-topbar">
+      <button id="btn-leave-board" class="btn btn--tiny">← Lobiye Dön</button>
+      <p class="board-title">JOJOPOLY <span class="board-title--accent">/ Tahta Önizleme</span></p>
+      <div class="turn-indicator">
+        <span class="turn-dot"></span>
+        <span id="turn-label">Sıra bekleniyor — henüz oynanamıyor</span>
+      </div>
+    </header>
+
+    <div class="board-stage">
+
+      <!-- Üst oyuncu -->
+      <div class="hud-player hud-player--top" data-slot="2">
+        <span class="hud-avatar"></span>
+        <span class="hud-name">Oyuncu 2</span>
+      </div>
+
+      <!-- Sol oyuncu -->
+      <div class="hud-player hud-player--left" data-slot="1">
+        <span class="hud-avatar"></span>
+        <span class="hud-name">Oyuncu 1</span>
+      </div>
+
+      <!-- Sağ oyuncu -->
+      <div class="hud-player hud-player--right" data-slot="3">
+        <span class="hud-avatar"></span>
+        <span class="hud-name">Oyuncu 3</span>
+      </div>
+
+      <!-- Dikkat / bilgi rozeti -->
+      <div class="hud-note">Dikkat: Prototip aşaması</div>
+
+      <!-- 3D tahta -->
+      <canvas id="board-canvas"></canvas>
+
+      <!-- Alt bar: kart yuvası + zar + piyon rafı -->
+      <footer class="board-bottombar">
+        <div class="card-slot">
+          <p class="bottombar-label">Kart Yuvası</p>
+          <div class="card-mock"></div>
+          <div class="card-mock"></div>
+        </div>
+
+        <button id="btn-roll" class="dice-btn" disabled>
+          <span class="dice-face">🎲</span>
+          <span>Zar At</span>
+        </button>
+
+        <div class="pawn-tray">
+          <p class="bottombar-label">Piyonlar</p>
+          <div class="pawn-mock" style="--pawn-color:#E63980"></div>
+          <div class="pawn-mock" style="--pawn-color:#D4AF37"></div>
+          <div class="pawn-mock" style="--pawn-color:#6E2FE8"></div>
+          <div class="pawn-mock" style="--pawn-color:#1FB6A6"></div>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="board.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
