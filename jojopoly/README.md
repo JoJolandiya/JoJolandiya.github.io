@@ -29,37 +29,44 @@ sonra tarayıcıda `http://localhost:8000` adresine git.
 Bu klasörü doğrudan `jojolandiya.github.io/oyun/` gibi bir alt klasöre
 kopyalaman yeterli — hiçbir build adımı yok, düz dosyalar.
 
-## Kendi kare görsellerini (PNG) ekleme
+## Mekanik prototipi nasıl test edilir
 
-Tahta artık kod tarafında kurulan bir iskelet (20 kare, halka şeklinde
-dizili) ve her karenin üstüne senin hazırladığın PNG'yi otomatik yüklüyor.
+"Sadece tahtayı önizle" ya da bir oda kurup "Tahtaya Geç" dediğinde artık
+**gerçekten oynanabilen** yerel (hotseat) bir prototip açılıyor:
 
-1. `tiles-config.js` dosyasını aç — her karenin `image` alanında hangi
-   dosya adını beklediğini görürsün (ör. `00-go.png`, `03-stand.png`).
-2. Çizdiğin PNG'yi tam o isimle `images/tiles/` klasörüne koy.
-3. Sayfayı yenile — kare otomatik olarak senin görselini gösterir.
+1. Sırası gelen oyuncu (üst-sol köşedeki oyuncu şeridinde vurgulanan) elindeki
+   Stand kartlarını (varsa) kullanabilir — karta tıklaman yeterli.
+2. **Zar At**'a bas — tahtada ilerlersin, geldiğin karenin eylemi otomatik
+   çalışır.
+3. Bir Bölge karesine geldiğinde ve bir aksiyon bekleniyorsa (mesela muhafız
+   yerleştirme), alt bardaki uyarıyı takip et — elindeki uygun karta tıkla.
+4. Kartların üstüne mouse ile gelince açıklamalarını gösteren bir tooltip
+   çıkar.
+5. Sıra otomatik olarak bir sonraki (hayatta kalan) oyuncuya geçer.
+6. Bir oyuncunun canı biterse elenir; son kalan oyuncu kazanır.
 
-PNG henüz yoksa kare, tipinin rengiyle + adıyla ("Bölge", "Stand Özelliği"
-vb.) bir yer tutucu gösteriyor, yani sayfa hiçbir zaman "kırık" görünmüyor.
+**Not:** Bu tamamen yerel bir simülasyon — 4 "oyuncu" da aynı ekrandan,
+sırayla, aynı tarayıcıda oynanıyor. Gerçek online çok oyunculuk (her oyuncu
+kendi cihazından) sonraki aşamada eklenecek.
 
-**Önerilen PNG boyutu:** kare format, 256x256 piksel. Hepsini aynı
-çözünürlükte tutman görsel tutarlılık için önemli.
-
-Kare sırasını/tipini değiştirmek istersen de yine `tiles-config.js`
-içinden düzenleyebilirsin — kod tarafında başka bir şeye dokunmana
-gerek yok.
+Tüm sayısal değerler (can, kaynak, çatışma formülü, kart havuzları) ve
+kare sırası `game-data.js` dosyasında tek bir yerde toplu — dengelemeye
+oradan devam edebiliriz.
 
 ## Şu an eksik olan / bir sonraki adımlar
 
-1. **Gerçek piyon modelleri:** Piyonlar hâlâ basit renkli silindirler.
-   Blockbench'ten çıkardığın piyon `.glb` dosyaları hazır olunca
-   GLTFLoader ile bunları değiştireceğiz.
+1. **Görsel taraf henüz eklenmedi** — kareler hâlâ kod-tabanlı placeholder
+   (renk + isim), muhafızlar tahtada küçük renkli küpler olarak görünüyor.
+   Kendi PNG'lerin ve 3D modellerin hazır olunca bunları entegre edeceğiz.
 2. **Gerçek çok oyunculu bağlantı:** `app.js` içindeki oda/oyuncu mantığı şu an
    tamamen sahte (setTimeout ile simüle ediliyor). Bunun yerine Socket.io +
    Render.com üzerinde çalışan bir Node.js sunucusu bağlanacak.
-3. **Zar atma / hareket / çatışma:** Henüz hiç oyun mantığı yok, sadece
-   görsel iskelet var.
-4. **Kart sistemi:** Kart yuvası şu an sadece dekoratif placeholder.
+3. **Kart havuzları placeholder:** `game-data.js` içindeki `STAND_POOL` ve
+   `GUARDIAN_POOL` gerçek kart tasarımlarıyla doldurulacak.
+4. **Sayısal dengeleme:** Can, kaynak, çatışma formülü gibi tüm değerler
+   ilk test turlarına göre ayarlanacak.
+5. **Yuva açma (kaynakla satın alma)** henüz UI'da yok — mantık `CONFIG`
+   içinde tanımlı ama tıklanabilir bir buton eklenmedi.
 
 ## Renk/Tipografi Sistemi
 

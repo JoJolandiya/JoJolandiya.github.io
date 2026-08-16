@@ -94,49 +94,36 @@
 
     <div class="board-stage">
 
-      <!-- Üst oyuncu -->
-      <div class="hud-player hud-player--top" data-slot="2">
-        <span class="hud-avatar"></span>
-        <span class="hud-name">Oyuncu 2</span>
-      </div>
+      <!-- Oyuncu durum şeridi -->
+      <div id="player-strip" class="player-strip"></div>
 
-      <!-- Sol oyuncu -->
-      <div class="hud-player hud-player--left" data-slot="1">
-        <span class="hud-avatar"></span>
-        <span class="hud-name">Oyuncu 1</span>
+      <!-- Olay günlüğü -->
+      <div class="hud-log">
+        <p class="bottombar-label">Olay Günlüğü</p>
+        <ul id="game-log-list"></ul>
       </div>
-
-      <!-- Sağ oyuncu -->
-      <div class="hud-player hud-player--right" data-slot="3">
-        <span class="hud-avatar"></span>
-        <span class="hud-name">Oyuncu 3</span>
-      </div>
-
-      <!-- Dikkat / bilgi rozeti -->
-      <div class="hud-note">Dikkat: Prototip aşaması</div>
 
       <!-- 3D tahta -->
       <canvas id="board-canvas"></canvas>
 
-      <!-- Alt bar: kart yuvası + zar + piyon rafı -->
+      <!-- Alt bar: el kartları + zar + aksiyon paneli -->
       <footer class="board-bottombar">
         <div class="card-slot">
-          <p class="bottombar-label">Kart Yuvası</p>
-          <div class="card-mock"></div>
-          <div class="card-mock"></div>
+          <p class="bottombar-label">Stand Elin</p>
+          <div id="stand-hand" class="hand-row"></div>
         </div>
 
-        <button id="btn-roll" class="dice-btn" disabled>
-          <span class="dice-face">🎲</span>
-          <span>Zar At</span>
-        </button>
+        <div class="center-controls">
+          <button id="btn-roll" class="dice-btn">
+            <span class="dice-face">🎲</span>
+            <span>Zar At</span>
+          </button>
+          <div id="action-panel" class="game-action-panel"></div>
+        </div>
 
         <div class="pawn-tray">
-          <p class="bottombar-label">Piyonlar</p>
-          <div class="pawn-mock" style="--pawn-color:#E63980"></div>
-          <div class="pawn-mock" style="--pawn-color:#D4AF37"></div>
-          <div class="pawn-mock" style="--pawn-color:#6E2FE8"></div>
-          <div class="pawn-mock" style="--pawn-color:#1FB6A6"></div>
+          <p class="bottombar-label">Muhafız Elin</p>
+          <div id="guardian-hand" class="hand-row"></div>
         </div>
       </footer>
     </div>
@@ -151,6 +138,7 @@
   }
   </script>
   <script type="module" src="board.js"></script>
+  <script type="module" src="game.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

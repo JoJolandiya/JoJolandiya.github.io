@@ -396,6 +396,76 @@ input{ font-family:inherit; }
   border-radius:2px;
 }
 
+/* ---------- Oyuncu şeridi ---------- */
+.player-strip{
+  position:absolute;
+  top:16px; left:16px;
+  z-index:5;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.player-badge{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:rgba(20,20,20,0.85);
+  border-left:4px solid var(--pcolor, var(--magenta));
+  padding:6px 12px;
+  border-radius:2px;
+  min-width:180px;
+  opacity:0.6;
+  transition:opacity 0.15s ease, transform 0.15s ease;
+}
+.player-badge.is-active{
+  opacity:1;
+  transform:translateX(4px);
+  box-shadow:0 0 0 1px var(--pcolor, var(--magenta));
+}
+.player-badge.is-dead{
+  opacity:0.3;
+  text-decoration:line-through;
+}
+.player-badge-name{
+  font-family:var(--font-mono);
+  font-size:11px;
+  font-weight:700;
+  color:var(--paper);
+}
+.player-badge-stat{
+  font-family:var(--font-mono);
+  font-size:10px;
+  color:var(--paper-dim);
+  margin-left:auto;
+}
+
+/* ---------- Olay günlüğü ---------- */
+.hud-log{
+  position:absolute;
+  top:16px; right:16px;
+  z-index:5;
+  width:260px;
+  max-height:180px;
+  overflow-y:auto;
+  background:rgba(20,20,20,0.9);
+  padding:10px 12px;
+  border-radius:2px;
+}
+.hud-log ul{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+.hud-log li{
+  font-size:11px;
+  color:var(--paper-dim);
+  line-height:1.4;
+  border-bottom:1px solid rgba(237,234,233,0.08);
+  padding-bottom:5px;
+}
+.hud-log li:first-child{ color:var(--paper); font-weight:600; }
+
 .board-bottombar{
   flex-shrink:0;
   display:flex;
@@ -417,29 +487,39 @@ input{ font-family:inherit; }
 }
 
 .card-slot, .pawn-tray{ display:flex; flex-direction:column; }
-.card-slot > div:not(.bottombar-label), .pawn-tray > div:not(.bottombar-label){
-  display:inline-block;
-}
 
-.card-slot{ flex-direction:column; }
+.hand-row{ display:flex; gap:8px; }
+
 .card-mock{
-  display:inline-block;
-  width:38px; height:52px;
+  width:44px; height:60px;
   border:2px solid var(--paper-dim);
   border-radius:3px;
-  margin-right:6px;
   background:repeating-linear-gradient(135deg, #1f1f1f, #1f1f1f 4px, #141414 4px, #141414 8px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:var(--font-display);
+  font-size:20px;
+  color:var(--paper-dim);
 }
+.card-mock.has-card{
+  background:linear-gradient(160deg, #2c2c2c, #1a1a1a);
+  border-color:var(--gold);
+  color:var(--gold);
+}
+.card-mock.is-usable{
+  cursor:pointer;
+  border-color:var(--magenta);
+  color:var(--magenta);
+  box-shadow:0 0 10px rgba(230,57,128,0.4);
+}
+.card-mock.is-usable:hover{ transform:translateY(-3px); }
 
-.pawn-tray{ display:flex; flex-direction:column; }
-.pawn-tray > .bottombar-label{ width:100%; }
-.pawn-mock{
-  display:inline-block;
-  width:22px; height:22px;
-  border-radius:4px;
-  margin-right:6px;
-  background:var(--pawn-color, var(--magenta));
-  border:2px solid rgba(237,234,233,0.4);
+.center-controls{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
 }
 
 .dice-btn{
@@ -460,3 +540,32 @@ input{ font-family:inherit; }
   cursor:not-allowed;
 }
 .dice-face{ font-size:18px; }
+
+.game-action-panel{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:24px;
+}
+.action-hint{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--gold);
+  max-width:220px;
+  text-align:center;
+}
+
+/* ---------- Tooltip ---------- */
+.tooltip{
+  position:fixed;
+  z-index:999;
+  max-width:220px;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:12px;
+  line-height:1.4;
+  padding:8px 10px;
+  border-radius:3px;
+  border:2px solid var(--ink);
+  pointer-events:none;
+}

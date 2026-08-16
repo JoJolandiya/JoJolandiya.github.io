@@ -33,6 +33,16 @@ function showScreen(id) {
   if (id === "board-screen") {
     // Tahta ekranına geçildiğinde Three.js sahnesinin boyutunu güncelle
     window.dispatchEvent(new Event("resize"));
+
+    // Oda dolu ise gerçek oyuncu isimleriyle, değilse varsayılan
+    // isimlerle mekanik prototipini başlat (yerel/hotseat).
+    const names = state.players.every((p) => p.filled)
+      ? state.players.map((p) => p.name)
+      : ["Sen", "Oyuncu 2", "Oyuncu 3", "Oyuncu 4"];
+
+    if (window.JojopolyGame) {
+      window.JojopolyGame.initGame(names);
+    }
   }
 }
 
