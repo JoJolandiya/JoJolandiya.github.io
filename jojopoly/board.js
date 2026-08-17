@@ -22,9 +22,9 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-const ambient = new THREE.AmbientLight(0xfff2df, 0.85);
+const ambient = new THREE.AmbientLight(0xfff2df, 1.05);
 scene.add(ambient);
-const directional = new THREE.DirectionalLight(0xffffff, 0.55);
+const directional = new THREE.DirectionalLight(0xffffff, 0.65);
 directional.position.set(5, 12, 7);
 scene.add(directional);
 
@@ -121,7 +121,9 @@ TILES.forEach((tileDef, i) => {
 
   const tex = createTileTexture(color, label);
   const sideMat = new THREE.MeshStandardMaterial({ color: 0x2a2621, roughness: 0.9 });
-  const topMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 });
+  // Kare üstü artık ışıktan etkilenmeyen (unlit) bir materyal —
+  // böylece renkler soluklaşmadan, tam doygunluklarıyla görünüyor.
+  const topMat = new THREE.MeshBasicMaterial({ map: tex });
 
   const geo = new THREE.BoxGeometry(size, 0.28, size);
   const materials = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
@@ -196,8 +198,11 @@ plaque.position.y = 0.01;
 scene.add(plaque);
 
 // ---------- Kamera ----------
-camera.position.set(0, boardHalf * 1.7, boardHalf * 2.05);
-camera.lookAt(0, 0, -boardHalf * 0.15);
+// Geriye ve yukarı çekilmiş, tüm tahtayı gösteren bir açı.
+camera.fov = 42;
+camera.updateProjectionMatrix();
+camera.position.set(0, boardHalf * 2.5, boardHalf * 2.85);
+camera.lookAt(0, 0, 0);
 
 function resize() {
   const parent = canvas.parentElement;
@@ -217,8 +222,8 @@ function animate() {
   requestAnimationFrame(animate);
   if (!reduceMotion) {
     t += 0.003;
-    camera.position.x = Math.sin(t) * boardHalf * 0.25;
-    camera.lookAt(0, 0, -boardHalf * 0.15);
+    camera.position.x = Math.sin(t) * boardHalf * 0.3;
+    camera.lookAt(0, 0, 0);
   }
   renderer.render(scene, camera);
 }

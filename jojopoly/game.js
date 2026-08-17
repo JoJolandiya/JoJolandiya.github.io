@@ -372,12 +372,15 @@ function renderTurnIndicator() {
 function renderPlayerStrip() {
   const el = document.getElementById("player-strip");
   if (!el) return;
+  // Oyuncular masanın dört bir yanında: 0=alt(Sen), 1=sol, 2=üst, 3=sağ
+  const corners = ["bottom", "left", "top", "right"];
   el.innerHTML = state.players
     .map((p, i) => {
       const active = i === state.currentPlayerIndex && !state.gameOver;
       const dead = !p.alive;
+      const corner = corners[i] ?? "top";
       return `
-        <div class="player-badge ${active ? "is-active" : ""} ${dead ? "is-dead" : ""}" style="--pcolor:#${p.color.toString(16).padStart(6, "0")}">
+        <div class="player-badge player-badge--${corner} ${active ? "is-active" : ""} ${dead ? "is-dead" : ""}" style="--pcolor:#${p.color.toString(16).padStart(6, "0")}">
           <span class="player-badge-name">${escapeHtml(p.name)}</span>
           <span class="player-badge-stat">HP ${p.health} · Kaynak ${p.resource}</span>
         </div>
