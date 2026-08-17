@@ -1,59 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JoJolandiya — Manga Oku</title>
-<meta name="description" content="JoJolandiya - Türkçe çevrilmiş manga bölümlerini ücretsiz oku.">
-<meta name="robots" content="index, follow">
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JOJOPOLY — JoJolandiya Masa Oyunu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-<header class="site-header">
-  <a class="brand" href="index.html">
-    <img class="seal-mark" src="images/flag.jpg" alt="JoJolandiya Bayrağı">
-    <div class="brand-name">JoJolandiya</div>
-  </a>
-  <a class="discord-btn" id="discord-link" href="#" target="_blank" rel="noopener">
-    <span class="label">Discord Sunucumuz</span>
-  </a>
-</header>
+  <!-- ===================== LOBİ EKRANI ===================== -->
+  <section id="lobby-screen" class="screen is-active">
 
-<main class="page-wrap">
-  <div class="eyebrow">Kütüphane</div>
-  <h1 class="page-title">Mangalar</h1>
+    <div class="lobby-grid">
 
-  <div class="manga-grid" id="manga-grid"></div>
-</main>
+      <!-- Sol panel: Marka / Başlık -->
+      <div class="brand-panel">
+        <div class="halftone"></div>
+        <div class="speedlines"></div>
+        <p class="eyebrow">JoJolandiya Sunar</p>
+        <h1 class="logo-mark">
+          <span class="logo-line">JOJO</span>
+          <span class="logo-line logo-line--accent">POLY</span>
+        </h1>
+        <p class="tagline">Dörtlü. Sıra bazlı. Yenilmez standlar<br/>ve kırılgan ittifaklar.</p>
 
-<script src="data.js"></script>
-<script>
-  document.getElementById('discord-link').href = DISCORD_INVITE_URL;
+        <ul class="pillar-list">
+          <li><span class="pillar-num">壱</span> Zar at, bölge kap</li>
+          <li><span class="pillar-num">弐</span> Muhafızını yerleştir</li>
+          <li><span class="pillar-num">参</span> Standını serbest bırak</li>
+        </ul>
+      </div>
 
-  const grid = document.getElementById('manga-grid');
+      <!-- Sağ panel: Maç akışı -->
+      <div class="action-panel">
 
-  MANGA_LIST.forEach(manga => {
-    const card = document.createElement('a');
-    card.className = 'manga-card';
-    card.href = `manga.html?id=${encodeURIComponent(manga.id)}`;
+        <!-- Durum A: seçim ekranı -->
+        <div id="mode-select" class="panel-block is-active">
+          <h2 class="block-title">Maça Başla</h2>
+          <p class="block-sub">Bir oda kur, arkadaşlarını davet et ya da mevcut bir odaya katıl.</p>
 
-    const coverHtml = manga.cover
-      ? `<img src="${manga.cover}" alt="${manga.title}">`
-      : `<div class="no-cover">${manga.title}</div>`;
+          <button id="btn-create" class="btn btn--primary">Maç Oluştur</button>
+          <button id="btn-join" class="btn btn--ghost">Kodla Katıl</button>
+          <button id="btn-preview" class="btn btn--text">Sadece tahtayı önizle →</button>
+        </div>
 
-    card.innerHTML = `
-      <div class="manga-cover">${coverHtml}</div>
-      <div class="manga-title">${manga.title}</div>
-      <div class="manga-meta">${manga.chapters.length} bölüm</div>
-    `;
-    grid.appendChild(card);
-  });
+        <!-- Durum B: kod ile katılım -->
+        <div id="mode-join" class="panel-block">
+          <h2 class="block-title">Odaya Katıl</h2>
+          <p class="block-sub">Sana gönderilen 5 haneli oda kodunu gir.</p>
+          <input id="join-code-input" class="code-input" maxlength="5" placeholder="XXXXX" autocomplete="off" />
+          <button id="btn-join-confirm" class="btn btn--primary">Katıl</button>
+          <button class="btn btn--text btn-back" data-back="mode-select">← Geri</button>
+        </div>
 
-  if (MANGA_LIST.length === 0) {
-    grid.innerHTML = `<p style="color:var(--text-muted)">Henüz manga eklenmedi.</p>`;
+        <!-- Durum C: oda / lobi (oyuncu bekleme) -->
+        <div id="mode-room" class="panel-block">
+          <div class="room-head">
+            <div>
+              <p class="block-sub" style="margin-bottom:2px;">Oda Kodu</p>
+              <p id="room-code-display" class="room-code">—</p>
+            </div>
+            <button id="btn-copy-code" class="btn btn--tiny">Kodu Kopyala</button>
+          </div>
+
+          <div class="player-slots" id="player-slots">
+            <!-- JS ile 4 oyuncu slotu doldurulacak -->
+          </div>
+
+          <p class="room-note">Not: Bu sürümde eşleşme yerel olarak simüle ediliyor. Gerçek zamanlı bağlantı (Socket.io + sunucu) sonraki aşamada eklenecek.</p>
+
+          <button id="btn-goto-board" class="btn btn--primary" disabled>Tahtaya Geç</button>
+          <button class="btn btn--text btn-back" data-back="mode-select">← Odadan çık</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TAHTA EKRANI ===================== -->
+  <section id="board-screen" class="screen">
+
+    <header class="board-topbar">
+      <button id="btn-leave-board" class="btn btn--tiny">← Lobiye Dön</button>
+      <p class="board-title">JOJOPOLY <span class="board-title--accent">/ Tahta Önizleme</span></p>
+      <div class="turn-indicator">
+        <span class="turn-dot"></span>
+        <span id="turn-label">Sıra bekleniyor — henüz oynanamıyor</span>
+      </div>
+    </header>
+
+    <div class="board-stage">
+
+      <!-- Oyuncu durum şeridi -->
+      <div id="player-strip"></div>
+
+      <!-- Olay günlüğü -->
+      <div class="hud-log">
+        <p class="bottombar-label">Olay Günlüğü</p>
+        <ul id="game-log-list"></ul>
+      </div>
+
+      <!-- 3D tahta -->
+      <canvas id="board-canvas"></canvas>
+
+      <!-- Alt bar: el kartları + zar + aksiyon paneli -->
+      <footer class="board-bottombar">
+        <div class="card-slot">
+          <p class="bottombar-label">Stand Elin</p>
+          <div id="stand-hand" class="hand-row"></div>
+        </div>
+
+        <div class="center-controls">
+          <button id="btn-roll" class="dice-btn">
+            <span class="dice-face">🎲</span>
+            <span>Zar At</span>
+          </button>
+          <div id="action-panel" class="game-action-panel"></div>
+        </div>
+
+        <div class="pawn-tray">
+          <p class="bottombar-label">Muhafız Elin</p>
+          <div id="guardian-hand" class="hand-row"></div>
+        </div>
+      </footer>
+    </div>
+  </section>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
   }
-</script>
-
+  </script>
+  <script type="module" src="board.js"></script>
+  <script type="module" src="game.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
